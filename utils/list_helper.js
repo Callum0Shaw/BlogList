@@ -47,7 +47,10 @@ const mostLikes = (blogs) => {
 
   const mostLikedBlog = blogs.reduce(reducer);
 
-  return mostLikedBlog.author;
+  return {
+    author: mostLikedBlog.author,
+    likes: mostLikedBlog.likes
+  };
 };
 
 module.exports = { dummy, totalLikes, favouriteBlog, mostBlogs, mostLikes };

@@ -116,6 +116,6 @@ describe("Author with most likes", () => {
   test("With multiple blogs", () => {
     const result = listHelper.mostLikes(listWithMultipleBlogs);
 
-    expect(result).toBe("Author3");
+    expect(result).toEqual({ author: "Author3", likes: 99 });
   });
 });
