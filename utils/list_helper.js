@@ -23,9 +23,9 @@ const favouriteBlog = (blogs) => {
 
 const mostBlogs = (blogs) => {
   const listAuthors = blogs.map((blog) => blog.author);
-
   const counts = {};
   let mostFreq = "";
+
   listAuthors.forEach((author) => {
     if (counts[author]) {
       counts[author]++;
@@ -36,9 +36,18 @@ const mostBlogs = (blogs) => {
       counts[author] = 1;
     }
   });
-  console.log(counts);
-  console.log(mostFreq);
+
   return mostFreq;
 };
 
-module.exports = { dummy, totalLikes, favouriteBlog, mostBlogs };
+const mostLikes = (blogs) => {
+  const reducer = (mostLiked, currentBlog) => {
+    return mostLiked.likes > currentBlog.likes ? mostLiked : currentBlog;
+  };
+
+  const mostLikedBlog = blogs.reduce(reducer);
+
+  return mostLikedBlog.author;
+};
+
+module.exports = { dummy, totalLikes, favouriteBlog, mostBlogs, mostLikes };
