@@ -21,4 +21,24 @@ const favouriteBlog = (blogs) => {
   return favourite;
 };
 
-module.exports = { dummy, totalLikes, favouriteBlog };
+const mostBlogs = (blogs) => {
+  const listAuthors = blogs.map((blog) => blog.author);
+
+  const counts = {};
+  let mostFreq = "";
+  listAuthors.forEach((author) => {
+    if (counts[author]) {
+      counts[author]++;
+      if (counts[author] > counts[mostFreq] || !counts[mostFreq]) {
+        mostFreq = author;
+      }
+    } else {
+      counts[author] = 1;
+    }
+  });
+  console.log(counts);
+  console.log(mostFreq);
+  return mostFreq;
+};
+
+module.exports = { dummy, totalLikes, favouriteBlog, mostBlogs };

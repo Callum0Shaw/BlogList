@@ -23,7 +23,7 @@ const listWithMultipleBlogs = [
   {
     _id: "5a422aa71b55a676234d17f8",
     title: "Blog3",
-    author: "Author1",
+    author: "Author2",
     url: "url.com",
     likes: 0,
     __v: 0,
@@ -31,7 +31,7 @@ const listWithMultipleBlogs = [
   {
     _id: "5a422aa71b54a676234d17f9",
     title: "Blog4",
-    author: "Author1",
+    author: "Author2",
     url: "url.com",
     likes: 99,
     __v: 0,
@@ -80,10 +80,18 @@ describe("Most likes", () => {
     expect(result).toEqual({
       _id: "5a422aa71b54a676234d17f9",
       title: "Blog4",
-      author: "Author1",
+      author: "Author2",
       url: "url.com",
       likes: 99,
       __v: 0,
     });
+  });
+});
+
+describe("Author with most blogs", () => {
+  test("With multiple blogs", () => {
+    const result = listHelper.mostBlogs(listWithMultipleBlogs);
+
+    expect(result).toBe("Author2");
   });
 });
