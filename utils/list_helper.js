@@ -10,4 +10,15 @@ const totalLikes = (blogs) => {
   return sumLikes;
 };
 
-module.exports = { dummy, totalLikes };
+const favouriteBlog = (blogs) => {
+  const reducer = (mostLikes, current) => {
+    mostLikes = mostLikes.likes > current.likes ? mostLikes : current;
+    return mostLikes;
+  };
+
+  const favourite = blogs.reduce(reducer);
+
+  return favourite;
+};
+
+module.exports = { dummy, totalLikes, favouriteBlog };
