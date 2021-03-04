@@ -42,11 +42,29 @@ test("Verify posting new blog correcting updates DB", async () => {
 
   const response = await api.get("/api/blogs");
 
-  const blogs = response.body.map((blog) => blog.title);
+  const blogTitles = response.body.map((blog) => blog.title);
 
-  expect(blogs.length).toEqual(helper.initialBlogs.length + 1);
-  expect(blogs).toContain("Test Blog");
+  expect(blogTitles.length).toEqual(helper.initialBlogs.length + 1);
+  expect(blogTitles).toContain("Test Blog");
 });
+
+test("Verify Likes defualt to 0 if missing", async () => {
+  const noLikesBlog = {
+    title: "Test Blog",
+    author: "Test Author",
+    url: "Test url"
+  };
+  await api
+    .post("/api/blogs")
+    .send(noLikesBlog)
+    .expect(201)
+    .expect("Content-Type", /application\/json/);
+
+  const response = await api.get("/api/blogs")
+
+  const blogLikes = response.body.map(blog => blog.likes)
+  expect(blogLikes).toContain(0)
+})
 
 afterAll(() => {
   mongoose.connection.close();
