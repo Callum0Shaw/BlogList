@@ -104,6 +104,20 @@ describe("Deleting a post", () => {
   });
 });
 
+describe("Updating blog post", () => {
+  test("Update likes", async () => {
+    const blogs = await helper.blogsInDb();
+    const toUpdate = blogs[0];
+
+    await Blog.findByIdAndUpdate(toUpdate.id, { likes: 100 }, { new: true });
+
+    const blogsAfter = await helper.blogsInDb();
+    const updatedLikes = blogsAfter.map((blog) => blog.likes);
+
+    expect(updatedLikes).toContain(100);
+  });
+});
+
 afterAll(() => {
   mongoose.connection.close();
 });
