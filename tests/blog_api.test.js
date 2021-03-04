@@ -52,7 +52,7 @@ test("Verify Likes defualt to 0 if missing", async () => {
   const noLikesBlog = {
     title: "Test Blog",
     author: "Test Author",
-    url: "Test url"
+    url: "Test url",
   };
   await api
     .post("/api/blogs")
@@ -60,11 +60,27 @@ test("Verify Likes defualt to 0 if missing", async () => {
     .expect(201)
     .expect("Content-Type", /application\/json/);
 
-  const response = await api.get("/api/blogs")
+  const response = await api.get("/api/blogs");
 
-  const blogLikes = response.body.map(blog => blog.likes)
-  expect(blogLikes).toContain(0)
-})
+  const blogLikes = response.body.map((blog) => blog.likes);
+  expect(blogLikes).toContain(0);
+});
+
+test("Verify new blogs missing title/url are rejected with 400", async () => {
+  const noUrlBlog = {
+    title: "Test Blog",
+    author: "Test Author",
+    likes: 10,
+  };
+
+  const noTitleBlog = {
+    author: "Test Author",
+    url: "Test url",
+    likes: 10,
+  };
+  await api.post("/api/blogs").send(noUrlBlog).expect(400)
+  await api.post("/api/blogs").send(noTitleBlog).expect(400)
+});
 
 afterAll(() => {
   mongoose.connection.close();
