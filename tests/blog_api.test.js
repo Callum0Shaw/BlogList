@@ -3,6 +3,7 @@ const supertest = require("supertest");
 const app = require("../app");
 const api = supertest(app);
 const Blog = require("../models/blogs");
+const User = require("../models/user");
 const helper = require("./test_helper");
 
 beforeEach(async () => {
@@ -84,12 +85,25 @@ describe("Posting new blog", () => {
     await api.post("/api/blogs").send(noUrlBlog).expect(400);
     await api.post("/api/blogs").send(noTitleBlog).expect(400);
   });
+  test("User infomation is correctly displayed", async () => {
+    const newBlog = {
+      title: "Test title",
+      author: "Test Author",
+      url: "Test url",
+      likes: 10,
+    };
+
+    await api.post("/api/blogs").send(newBlog).expect(201);
+
+    const savedBlog = await Blog.findOne({ title: "Test title" });
+
+    expect(savedBlog.user).toBeDefined();
+  });
 });
 
 describe("Deleting a post", () => {
   test("Succeeds with status code of 204 if correct id", async () => {
     const blogsAtStart = await helper.blogsInDb();
-    console.log(blogsAtStart);
     const blogToDelete = blogsAtStart[0];
 
     await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
@@ -117,8 +131,6 @@ describe("Updating blog post", () => {
     expect(updatedLikes).toContain(100);
   });
 });
-
-
 
 afterAll(() => {
   mongoose.connection.close();
