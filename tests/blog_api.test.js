@@ -5,8 +5,27 @@ const api = supertest(app);
 const Blog = require("../models/blogs");
 const User = require("../models/user");
 const helper = require("./test_helper");
+const bcrypt = require("bcrypt");
+
+let token;
 
 beforeEach(async () => {
+  await User.deleteMany({});
+  passwordHash = await bcrypt.hash("password", 10);
+  const user = new User({
+    username: "username",
+    name: "name",
+    passwordHash,
+  });
+
+  await user.save();
+
+  const response = await api
+    .post("/api/login")
+    .send({ username: "username", password: "password" });
+
+  token = response.body.token;
+
   await Blog.deleteMany({});
 
   const blogObjects = helper.initialBlogs.map((blog) => new Blog(blog));
@@ -41,6 +60,7 @@ describe("Posting new blog", () => {
     await api
       .post("/api/blogs")
       .send(newBlog)
+      .set("authorization", `Bearer ${token}`)
       .expect(201)
       .expect("Content-Type", /application\/json/);
 
@@ -61,6 +81,7 @@ describe("Posting new blog", () => {
     await api
       .post("/api/blogs")
       .send(noLikesBlog)
+      .set("authorization", `Bearer ${token}`)
       .expect(201)
       .expect("Content-Type", /application\/json/);
 
@@ -82,8 +103,16 @@ describe("Posting new blog", () => {
       url: "Test url",
       likes: 10,
     };
-    await api.post("/api/blogs").send(noUrlBlog).expect(400);
-    await api.post("/api/blogs").send(noTitleBlog).expect(400);
+    await api
+      .post("/api/blogs")
+      .send(noUrlBlog)
+      .set("authorization", `Bearer ${token}`)
+      .expect(400);
+    await api
+      .post("/api/blogs")
+      .send(noTitleBlog)
+      .set("authorization", `Bearer ${token}`)
+      .expect(400);
   });
   test("User infomation is correctly displayed", async () => {
     const newBlog = {
@@ -93,12 +122,30 @@ describe("Posting new blog", () => {
       likes: 10,
     };
 
-    await api.post("/api/blogs").send(newBlog).expect(201);
+    await api
+      .post("/api/blogs")
+      .send(newBlog)
+      .set("authorization", `Bearer ${token}`)
+      .expect(201);
 
     const savedBlog = await Blog.findOne({ title: "Test title" });
 
     expect(savedBlog.user).toBeDefined();
   });
+  test("Authentication works", async () => {
+    const newBlog = {
+      title: "Test title",
+      author: "Test Author",
+      url: "Test url",
+      likes: 10,
+    };
+
+    await api
+      .post("/api/blogs")
+      .send(newBlog)
+      .expect(401);
+
+  })
 });
 
 describe("Deleting a post", () => {
