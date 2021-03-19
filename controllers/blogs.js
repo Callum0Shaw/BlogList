@@ -3,16 +3,6 @@ const Blog = require("../models/blogs");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 
-// Isolate token from header
-const getTokenFrom = request => {
-  const authorization = request.get("authorization")
-  if (authorization && authorization.toLowerCase().startsWith("bearer ")) {
-    return authorization.substring(7)
-  }
-  return null
-}
-
-
 blogRouter.get("/", async (request, response) => {
   const blogs = await Blog.find({}).populate("user", {
     username: 1,
@@ -25,17 +15,12 @@ blogRouter.get("/", async (request, response) => {
 
 blogRouter.post("/", async (request, response, next) => {
   const body = request.body;
-  const token = getTokenFrom(request)
-  
-  const decodedToken = jwt.verify(token, process.env.SECRET)
-  console.log(`DECODEDTOKEN ${decodedToken}`);
-
-  if(!token || !decodedToken.id) {
-    return response.status(401).json({error: "token missing or invalid"})
+  const decodedToken = jwt.verify(request.token, process.env.SECRET);
+  if (!request.token || !decodedToken.id) {
+    return response.status(401).json({ error: "token missing or invalid" });
   }
 
-  const user = await User.findById(decodedToken.id)
-
+  const user = await User.findById(decodedToken.id);
   const blog = new Blog({
     title: body.title,
     author: body.author,
@@ -50,7 +35,16 @@ blogRouter.post("/", async (request, response, next) => {
   return response.status(201).json(savedBlog);
 });
 
-blogRouter.delete("/:id", async (request, response) => {
+blogRouter.delete("/:id", async (request, response, next) => {
+  const blog = await Blog.findById(request.params.id);
+  const decodedToken = jwt.verify(request.token, process.env.SECRET);
+
+  console.log(`DecodedToken ${decodedToken.id}`);
+  console.log(`Blog ${blog}`);
+  console.log(`Token ${request.token}`);
+  if (blog.user.toString() !== decodedToken.id.toString()) {
+    response.status(401).json({ error: "missing or invalid" });
+  }
   await Blog.findByIdAndRemove(request.params.id);
   response.status(204).end();
 });

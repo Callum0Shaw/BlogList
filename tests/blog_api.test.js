@@ -28,7 +28,8 @@ beforeEach(async () => {
 
   await Blog.deleteMany({});
 
-  const blogObjects = helper.initialBlogs.map((blog) => new Blog(blog));
+  const noUserBlogs = helper.initialBlogs.map((blog) => ({...blog, user: user._id}));
+  const blogObjects = noUserBlogs.map(blog => new Blog(blog))
 
   const promiseArray = blogObjects.map((blog) => blog.save());
   await Promise.all(promiseArray);
@@ -140,20 +141,20 @@ describe("Posting new blog", () => {
       likes: 10,
     };
 
-    await api
-      .post("/api/blogs")
-      .send(newBlog)
-      .expect(401);
-
-  })
+    await api.post("/api/blogs").send(newBlog).expect(401);
+  });
 });
 
 describe("Deleting a post", () => {
+
   test("Succeeds with status code of 204 if correct id", async () => {
     const blogsAtStart = await helper.blogsInDb();
     const blogToDelete = blogsAtStart[0];
 
-    await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .set("authorization", `Bearer ${token}`)
+      .expect(204);
 
     const blogsAfter = await helper.blogsInDb();
     expect(blogsAfter.length).toEqual(blogsAtStart.length - 1);
@@ -161,7 +162,29 @@ describe("Deleting a post", () => {
     expect(titles).not.toContain(blogToDelete.title);
   });
   test("Fails with 400 if incorrect id", async () => {
-    await api.delete(`/api/blogs/${helper.nonExistantId()}`).expect(400);
+    await api
+      .delete(`/api/blogs/${helper.nonExistantId()}`)
+      .set("authorization", `Bearer ${token}`)
+      .expect(400);
+  });
+  test("No token results in 401", async () => {
+    const blogsAtStart = await helper.blogsInDb();
+    const blogToDelete = blogsAtStart[0];
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(401);
+  });
+  test("Invalid token results in 401", async () => {
+    const blogsAtStart = await helper.blogsInDb();
+    const blogToDelete = blogsAtStart[0];
+
+    const invalidToken = "5a422aa71b54a676234d17f8"
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .set("authorization", `Bearer ${invalidToken}`)
+      .expect(401);
   });
 });
 
